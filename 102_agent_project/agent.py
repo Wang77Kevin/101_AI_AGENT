@@ -4,15 +4,17 @@ import sys
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+if not load_dotenv():
+    # Try parent dir
+    load_dotenv("../.env")
 
 # Check for API Key
-if not os.getenv("OPENAI_API_KEY"):
-    print("⚠️  WARNING: OPENAI_API_KEY is not set in your environment or .env file.")
-    print("Please set it to run the agent. Example: export OPENAI_API_KEY='sk-...'")
+if not os.getenv("GOOGLE_API_KEY"):
+    print("⚠️  WARNING: GOOGLE_API_KEY is not set in your environment or .env file.")
+    print("Please set it to run the agent. Example: export GOOGLE_API_KEY='AIza...'")
     # We won't exit here to allow import, but running it will fail if key is needed.
 
-from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
 from langchain_core.tools import tool
 from langchain_core.messages import SystemMessage
@@ -43,8 +45,8 @@ def check_system_info() -> str:
 
 # Setup Agent
 def build_agent():
-    # Initialize LLM
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+    # Initialize LLM (Gemini)
+    llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
     
     # Define tool list
     tools = [search_knowledge_base, check_system_info]
@@ -52,7 +54,7 @@ def build_agent():
     # Create the ReAct agent graph
     system_prompt = "You are a helpful AI assistant. Use your tools to answer questions about MCP and Ragas. If you don't know, look it up in the knowledge base."
     
-    graph = create_react_agent(llm, tools, state_modifier=system_prompt)
+    graph = create_react_agent(llm, tools, prompt=system_prompt)
     return graph
 
 def run_chat_loop():

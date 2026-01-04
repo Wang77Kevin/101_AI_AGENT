@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 from datasets import Dataset
 from ragas import evaluate
 from ragas.metrics import (
-    faithfulness,
     answer_relevancy,
     context_precision,
     context_recall,
+    faithfulness,
 )
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
 
 # Load env
 load_dotenv()
@@ -20,12 +20,17 @@ from rag_pipeline import get_retriever
 from agent import build_agent
 
 def run_evaluation():
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
-        print("❌ OPENAI_API_KEY not found. Cannot run evaluation.")
+        print("❌ GOOGLE_API_KEY not found. Cannot run evaluation.")
         return
 
     print("🚀 Starting Evaluation...")
+
+    # Initialize Gemini for Ragas
+    # Ragas needs an LLM and Embeddings to evaluate the answers
+    evaluator_llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+    evaluator_embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
 
     # 1. Define Test Data
     # Questions based on our knowledge base (mcp_overview.md, ragas_overview.md)
@@ -73,9 +78,8 @@ def run_evaluation():
 
     # 4. Run Ragas Evaluation
     # We need to explicitly pass the LLM/Embeddings to Ragas if not default
-    # But Ragas defaults to OpenAI, so if env var is set, it works.
     
-    print("📊 Calculating metrics (this uses OpenAI API)...")
+    print("📊 Calculating metrics (this uses Gemini API)...")
     results = evaluate(
         dataset=dataset,
         metrics=[
@@ -84,6 +88,8 @@ def run_evaluation():
             context_precision,
             context_recall,
         ],
+        llm=evaluator_llm,
+        embeddings=evaluator_embeddings
     )
 
     print("\n✅ Evaluation Results:")
