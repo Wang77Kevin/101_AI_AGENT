@@ -6,7 +6,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import SentenceTransformerEmbeddings
 
 # Load env (though we are using local embeddings, so no API key strictly needed for this part)
-load_dotenv()
+if not load_dotenv():
+    load_dotenv("../.env")
 
 # Constants
 DATA_PATH = "data"

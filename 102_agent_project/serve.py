@@ -7,7 +7,8 @@ import sys
 from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
+if not load_dotenv():
+    load_dotenv("../.env")
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -24,6 +25,10 @@ app = FastAPI(
 @app.get("/")
 async def redirect_root_to_docs():
     return RedirectResponse("/docs")
+
+@app.get("/agent")
+async def redirect_agent_to_playground():
+    return RedirectResponse("/agent/playground/")
 
 # Create and bind the agent
 # Note: build_agent() returns a compiled graph
